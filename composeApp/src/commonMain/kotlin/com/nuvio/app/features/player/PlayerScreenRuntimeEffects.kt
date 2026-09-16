@@ -20,6 +20,7 @@ import com.nuvio.app.features.player.skip.SkipIntervalLookup
 import com.nuvio.app.features.player.skip.autoSkipKey
 import com.nuvio.app.features.player.skip.autoSkipKeysCompletedBy
 import com.nuvio.app.features.player.skip.resolveSkipIntervalLookup
+import com.nuvio.app.features.player.skip.trySkipInterval
 import com.nuvio.app.features.player.skip.skipTargetPositionMs
 import com.nuvio.app.features.player.skip.activeManualSkipInterval
 import com.nuvio.app.features.streams.BingeGroupCacheRepository
@@ -572,8 +573,7 @@ private fun PlayerScreenRuntime.BindPlayerMetadataAndSkipEffects() {
                 segmentType in playerSettingsUiState.autoSkipSegmentTypes &&
                 intervalKey !in autoSkippedIntervalKeys
             ) {
-                val seekPositionMs = current.skipTargetPositionMs(playbackSnapshot.durationMs, skipIntervals)
-                if (!controller.trySeekTo(seekPositionMs)) return@LaunchedEffect
+                if (!controller.trySkipInterval(current, skipIntervals, playbackSnapshot.durationMs)) return@LaunchedEffect
                 autoSkippedIntervalKeys.add(intervalKey)
                 scheduleProgressSyncAfterSeek()
                 skipIntervalDismissed = true
@@ -584,7 +584,7 @@ private fun PlayerScreenRuntime.BindPlayerMetadataAndSkipEffects() {
                         AutoSkipSegmentType.OUTRO -> Res.string.player_auto_skip_outro_notification
                         AutoSkipSegmentType.MOVIE_CREDITS -> Res.string.player_auto_skip_movie_credits_notification
                     },
-                    formatPlaybackTime(seekPositionMs),
+                    formatPlaybackTime(current.skipTargetPositionMs(playbackSnapshot.durationMs, skipIntervals)),
                 )
                 playerNotificationToken += 1L
             }

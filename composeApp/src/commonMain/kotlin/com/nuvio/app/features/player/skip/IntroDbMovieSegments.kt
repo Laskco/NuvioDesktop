@@ -1,5 +1,9 @@
 package com.nuvio.app.features.player.skip
 
+import com.nuvio.app.features.player.PlayerEngineController
+
+private const val POST_CREDITS_GAP_MS = 5_000L
+
 internal fun SkipInterval.isManuallySkippable(): Boolean = type.trim().lowercase() != "post-credits"
 
 internal fun List<SkipInterval>.activeManualSkipInterval(positionMs: Long): SkipInterval? {
@@ -13,12 +17,33 @@ internal fun SkipInterval.followingPostCreditsScene(
     intervals: List<SkipInterval>,
     durationMs: Long,
 ): SkipInterval? {
-    if (type != "movie-credits" || !hasValidMovieTimes()) return null
-    return intervals.asSequence().filter { scene ->
+    if ((type != "movie-credits" && type !in PlayerNextEpisodeRules.OUTRO_SEGMENT_TYPES) ||
+        !hasValidMovieTimes()
+    ) return null
+    val explicit = intervals.asSequence().filter { scene ->
         scene.type == "post-credits" && scene.hasValidMovieTimes() &&
             scene.startTime >= endTime &&
             (durationMs <= 0L || scene.startTime * 1000.0 < durationMs.toDouble())
     }.minByOrNull { it.startTime }
+    if (explicit != null) return explicit
+    if (durationMs > 0L && durationMs - (endTime * 1000.0).toLong() > POST_CREDITS_GAP_MS) {
+        return SkipInterval(endTime, durationMs / 1000.0, "post-credits", "heuristic")
+    }
+    return null
+}
+
+internal fun PlayerEngineController.trySkipInterval(
+    interval: SkipInterval,
+    intervals: List<SkipInterval>,
+    durationMs: Long,
+    clampToDuration: Boolean = false,
+): Boolean {
+    if (!interval.isManuallySkippable()) return false
+    val rawTarget = interval.skipTargetPositionMs(durationMs, intervals)
+    val target = if (clampToDuration && durationMs > 0L) rawTarget.coerceAtMost(durationMs - 1L) else rawTarget
+    return if (interval.type == "movie-credits" || interval.followingPostCreditsScene(intervals, durationMs) != null) {
+        trySeekToExact(target)
+    } else trySeekTo(target)
 }
 
 private fun SkipInterval.hasValidMovieTimes(): Boolean =

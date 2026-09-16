@@ -1,6 +1,6 @@
 package com.nuvio.app.features.player
 
-import com.nuvio.app.features.player.skip.skipTargetPositionMs
+import com.nuvio.app.features.player.skip.trySkipInterval
 import com.nuvio.app.features.player.skip.followingPostCreditsScene
 import com.nuvio.app.features.player.skip.isManuallySkippable
 import androidx.compose.animation.AnimatedVisibility
@@ -926,7 +926,7 @@ private fun PlayerScreenRuntime.handlePlayerControlsEvent(type: String, value: D
         "submitIntroCommit" -> submitIntroFromPlayerControls()
         "skipInterval" -> {
             val interval = activeSkipInterval?.takeIf { it.isManuallySkippable() } ?: return true
-            playerController?.seekTo(interval.skipTargetPositionMs(playbackSnapshot.durationMs, skipIntervals))
+            if (playerController?.trySkipInterval(interval, skipIntervals, playbackSnapshot.durationMs) != true) return true
             scheduleProgressSyncAfterSeek()
             skipIntervalDismissed = true
         }
@@ -1646,11 +1646,7 @@ private fun BoxScope.RenderPlaybackOverlays(
             skipIntervalDismissed = skipIntervalDismissed,
             controlsVisible = controlsVisible,
             onSkipInterval = { interval ->
-                if (interval.isManuallySkippable()) {
-                    val rawMs = interval.skipTargetPositionMs(playbackSnapshot.durationMs, skipIntervals)
-                    val durationMs = playbackSnapshot.durationMs
-                    val seekMs = if (durationMs > 0L) rawMs.coerceAtMost(durationMs - 1) else rawMs
-                    playerController?.seekTo(seekMs)
+                if (playerController?.trySkipInterval(interval, skipIntervals, playbackSnapshot.durationMs, clampToDuration = true) == true) {
                     scheduleProgressSyncAfterSeek()
                     skipIntervalDismissed = true
                 }

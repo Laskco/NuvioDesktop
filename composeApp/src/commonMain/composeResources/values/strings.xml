@@ -1446,7 +1446,7 @@
     <string name="player_skip">Skip</string>
     <string name="player_skip_intro">Skip Intro</string>
     <string name="player_skip_outro">Skip Outro</string>
-    <string name="player_skip_movie_credits">Skip credits</string>
+    <string name="player_skip_movie_credits">Skip Credits</string>
     <string name="player_skip_to_post_credits">Skip to Post-Credits</string>
     <string name="player_skip_recap">Skip Recap</string>
     <string name="player_auto_skip_intro_notification">Intro skipped to %1$s</string>
