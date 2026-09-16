@@ -17,9 +17,7 @@ internal fun SkipInterval.followingPostCreditsScene(
     return intervals.asSequence().filter { scene ->
         scene.type == "post-credits" && scene.hasValidMovieTimes() &&
             scene.startTime >= endTime &&
-            (durationMs <= 0L ||
-                (scene.startTime * 1000.0 < durationMs.toDouble() &&
-                    scene.endTime * 1000.0 <= durationMs.toDouble()))
+            (durationMs <= 0L || scene.startTime * 1000.0 < durationMs.toDouble())
     }.minByOrNull { it.startTime }
 }
 
