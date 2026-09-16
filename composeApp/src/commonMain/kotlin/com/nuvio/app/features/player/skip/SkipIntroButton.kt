@@ -41,6 +41,8 @@ import nuvio.composeapp.generated.resources.Res
 import nuvio.composeapp.generated.resources.player_skip
 import nuvio.composeapp.generated.resources.player_skip_intro
 import nuvio.composeapp.generated.resources.player_skip_outro
+import nuvio.composeapp.generated.resources.player_skip_movie_credits
+import nuvio.composeapp.generated.resources.player_skip_post_credits
 import nuvio.composeapp.generated.resources.player_skip_recap
 import org.jetbrains.compose.resources.stringResource
 
@@ -151,6 +153,8 @@ private fun skipLabel(type: String?): String =
     when (type?.lowercase()) {
         "intro", "op", "mixed-op" -> stringResource(Res.string.player_skip_intro)
         "outro", "ed", "mixed-ed", "credits" -> stringResource(Res.string.player_skip_outro)
+        "movie-credits" -> stringResource(Res.string.player_skip_movie_credits)
+        "post-credits" -> stringResource(Res.string.player_skip_post_credits)
         "recap" -> stringResource(Res.string.player_skip_recap)
         else -> stringResource(Res.string.player_skip)
     }

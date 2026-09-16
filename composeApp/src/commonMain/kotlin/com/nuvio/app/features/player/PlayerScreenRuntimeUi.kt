@@ -1,5 +1,6 @@
 package com.nuvio.app.features.player
 
+import com.nuvio.app.features.player.skip.skipTargetPositionMs
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
@@ -921,7 +922,7 @@ private fun PlayerScreenRuntime.handlePlayerControlsEvent(type: String, value: D
         "submitIntroCommit" -> submitIntroFromPlayerControls()
         "skipInterval" -> {
             val interval = activeSkipInterval ?: return true
-            playerController?.seekTo((interval.endTime * 1000).toLong())
+            playerController?.seekTo(interval.skipTargetPositionMs(playbackSnapshot.durationMs))
             scheduleProgressSyncAfterSeek()
             skipIntervalDismissed = true
         }
@@ -1184,6 +1185,8 @@ private fun skipPromptLabel(type: String?): String =
     when (type?.lowercase()) {
         "intro", "op", "mixed-op" -> stringResource(Res.string.player_skip_intro)
         "outro", "ed", "mixed-ed", "credits" -> stringResource(Res.string.player_skip_outro)
+        "movie-credits" -> stringResource(Res.string.player_skip_movie_credits)
+        "post-credits" -> stringResource(Res.string.player_skip_post_credits)
         "recap" -> stringResource(Res.string.player_skip_recap)
         else -> stringResource(Res.string.player_skip)
     }

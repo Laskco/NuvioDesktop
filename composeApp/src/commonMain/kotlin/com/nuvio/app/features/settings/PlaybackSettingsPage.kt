@@ -2167,11 +2167,11 @@ private fun AutoSkipSegmentSelectionDialog(
                     fontWeight = FontWeight.SemiBold,
                 )
 
-                Column(
-                    modifier = Modifier.fillMaxWidth(),
+                LazyColumn(
+                    modifier = Modifier.fillMaxWidth().weight(1f, fill = false),
                     verticalArrangement = Arrangement.spacedBy(8.dp),
                 ) {
-                    AutoSkipSegmentType.entries.forEach { segmentType ->
+                    items(AutoSkipSegmentType.entries, key = { it.storedValue }) { segmentType ->
                         val isSelected = segmentType in selectedTypes
                         val containerColor = if (isSelected) {
                             MaterialTheme.colorScheme.primary.copy(alpha = 0.14f)
@@ -2240,10 +2240,14 @@ private fun autoSkipSelectionSummary(selectedTypes: Set<AutoSkipSegmentType>): S
     val introLabel = stringResource(Res.string.settings_playback_auto_skip_intro)
     val recapLabel = stringResource(Res.string.settings_playback_auto_skip_recap)
     val outroLabel = stringResource(Res.string.settings_playback_auto_skip_outro)
+    val movieCreditsLabel = stringResource(Res.string.settings_playback_auto_skip_movie_credits)
+    val postCreditsLabel = stringResource(Res.string.settings_playback_auto_skip_post_credits)
     return buildList {
         if (AutoSkipSegmentType.INTRO in selectedTypes) add(introLabel)
         if (AutoSkipSegmentType.RECAP in selectedTypes) add(recapLabel)
         if (AutoSkipSegmentType.OUTRO in selectedTypes) add(outroLabel)
+        if (AutoSkipSegmentType.MOVIE_CREDITS in selectedTypes) add(movieCreditsLabel)
+        if (AutoSkipSegmentType.POST_CREDITS in selectedTypes) add(postCreditsLabel)
     }.joinToString(", ")
 }
 
@@ -2252,6 +2256,8 @@ private fun autoSkipTypeLabel(segmentType: AutoSkipSegmentType): String = when (
     AutoSkipSegmentType.INTRO -> stringResource(Res.string.settings_playback_auto_skip_intro)
     AutoSkipSegmentType.RECAP -> stringResource(Res.string.settings_playback_auto_skip_recap)
     AutoSkipSegmentType.OUTRO -> stringResource(Res.string.settings_playback_auto_skip_outro)
+    AutoSkipSegmentType.MOVIE_CREDITS -> stringResource(Res.string.settings_playback_auto_skip_movie_credits)
+    AutoSkipSegmentType.POST_CREDITS -> stringResource(Res.string.settings_playback_auto_skip_post_credits)
 }
 
 @Composable
@@ -2259,6 +2265,8 @@ private fun autoSkipTypeDescription(segmentType: AutoSkipSegmentType): String = 
     AutoSkipSegmentType.INTRO -> stringResource(Res.string.settings_playback_auto_skip_intro_description)
     AutoSkipSegmentType.RECAP -> stringResource(Res.string.settings_playback_auto_skip_recap_description)
     AutoSkipSegmentType.OUTRO -> stringResource(Res.string.settings_playback_auto_skip_outro_description)
+    AutoSkipSegmentType.MOVIE_CREDITS -> stringResource(Res.string.settings_playback_auto_skip_movie_credits_description)
+    AutoSkipSegmentType.POST_CREDITS -> stringResource(Res.string.settings_playback_auto_skip_post_credits_description)
 }
 
 @Composable

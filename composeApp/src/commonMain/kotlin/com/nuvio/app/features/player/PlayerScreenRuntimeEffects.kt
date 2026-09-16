@@ -20,6 +20,7 @@ import com.nuvio.app.features.player.skip.SkipIntervalLookup
 import com.nuvio.app.features.player.skip.autoSkipKey
 import com.nuvio.app.features.player.skip.autoSkipKeysCompletedBy
 import com.nuvio.app.features.player.skip.resolveSkipIntervalLookup
+import com.nuvio.app.features.player.skip.skipTargetPositionMs
 import com.nuvio.app.features.streams.BingeGroupCacheRepository
 import com.nuvio.app.features.streams.StreamLinkCacheRepository
 import com.nuvio.app.features.streams.StreamItem
@@ -475,6 +476,8 @@ private fun PlayerScreenRuntime.BindPlayerMetadataAndSkipEffects() {
         activeEpisodeNumber,
         parentMetaId,
         playerSettingsUiState.skipIntroEnabled,
+        parentMetaType,
+        contentType,
     ) {
         skipIntervals = emptyList()
         activeSkipInterval = null
@@ -487,6 +490,11 @@ private fun PlayerScreenRuntime.BindPlayerMetadataAndSkipEffects() {
         nextEpisodeAutoPlaySearching = false
 
         if (!playerSettingsUiState.skipIntroEnabled) return@LaunchedEffect
+
+        if ((contentType ?: parentMetaType).equals("movie", ignoreCase = true)) {
+            skipIntervals = SkipIntroRepository.getMovieSkipIntervals(parentMetaId, activeVideoId)
+            return@LaunchedEffect
+        }
 
         val lookup = resolveSkipIntervalLookup(
             videoId = activeVideoId,
@@ -566,7 +574,7 @@ private fun PlayerScreenRuntime.BindPlayerMetadataAndSkipEffects() {
                 segmentType in playerSettingsUiState.autoSkipSegmentTypes &&
                 intervalKey !in autoSkippedIntervalKeys
             ) {
-                val seekPositionMs = (current.endTime * 1000).toLong()
+                val seekPositionMs = current.skipTargetPositionMs(playbackSnapshot.durationMs)
                 if (!controller.trySeekTo(seekPositionMs)) return@LaunchedEffect
                 autoSkippedIntervalKeys.add(intervalKey)
                 scheduleProgressSyncAfterSeek()
@@ -576,6 +584,8 @@ private fun PlayerScreenRuntime.BindPlayerMetadataAndSkipEffects() {
                         AutoSkipSegmentType.INTRO -> Res.string.player_auto_skip_intro_notification
                         AutoSkipSegmentType.RECAP -> Res.string.player_auto_skip_recap_notification
                         AutoSkipSegmentType.OUTRO -> Res.string.player_auto_skip_outro_notification
+                        AutoSkipSegmentType.MOVIE_CREDITS -> Res.string.player_auto_skip_movie_credits_notification
+                        AutoSkipSegmentType.POST_CREDITS -> Res.string.player_auto_skip_post_credits_notification
                     },
                     formatPlaybackTime(seekPositionMs),
                 )
