@@ -21,6 +21,7 @@ import com.nuvio.app.features.player.skip.autoSkipKey
 import com.nuvio.app.features.player.skip.autoSkipKeysCompletedBy
 import com.nuvio.app.features.player.skip.resolveSkipIntervalLookup
 import com.nuvio.app.features.player.skip.skipTargetPositionMs
+import com.nuvio.app.features.player.skip.activeManualSkipInterval
 import com.nuvio.app.features.streams.BingeGroupCacheRepository
 import com.nuvio.app.features.streams.StreamLinkCacheRepository
 import com.nuvio.app.features.streams.StreamItem
@@ -554,10 +555,7 @@ private fun PlayerScreenRuntime.BindPlayerMetadataAndSkipEffects() {
             else -> 0L
         }
         autoSkippedIntervalKeys += skipIntervals.autoSkipKeysCompletedBy(initialPlaybackPositionMs)
-        val positionSec = playbackSnapshot.positionMs / 1000.0
-        val current = skipIntervals.firstOrNull { interval ->
-            positionSec >= interval.startTime && positionSec < interval.endTime
-        }
+        val current = skipIntervals.activeManualSkipInterval(playbackSnapshot.positionMs)
         if (current != activeSkipInterval) {
             activeSkipInterval = current
             if (current != null) skipIntervalDismissed = false
@@ -574,7 +572,7 @@ private fun PlayerScreenRuntime.BindPlayerMetadataAndSkipEffects() {
                 segmentType in playerSettingsUiState.autoSkipSegmentTypes &&
                 intervalKey !in autoSkippedIntervalKeys
             ) {
-                val seekPositionMs = current.skipTargetPositionMs(playbackSnapshot.durationMs)
+                val seekPositionMs = current.skipTargetPositionMs(playbackSnapshot.durationMs, skipIntervals)
                 if (!controller.trySeekTo(seekPositionMs)) return@LaunchedEffect
                 autoSkippedIntervalKeys.add(intervalKey)
                 scheduleProgressSyncAfterSeek()
@@ -585,7 +583,6 @@ private fun PlayerScreenRuntime.BindPlayerMetadataAndSkipEffects() {
                         AutoSkipSegmentType.RECAP -> Res.string.player_auto_skip_recap_notification
                         AutoSkipSegmentType.OUTRO -> Res.string.player_auto_skip_outro_notification
                         AutoSkipSegmentType.MOVIE_CREDITS -> Res.string.player_auto_skip_movie_credits_notification
-                        AutoSkipSegmentType.POST_CREDITS -> Res.string.player_auto_skip_post_credits_notification
                     },
                     formatPlaybackTime(seekPositionMs),
                 )
